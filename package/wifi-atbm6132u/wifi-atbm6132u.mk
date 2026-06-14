@@ -1,5 +1,6 @@
 WIFI_ATBM6132U_SITE_METHOD = git
 ifeq ($(KERNEL_VERSION),3.10.14)
+# Temporary source for ATBM6132C-U support until upstream branch includes PID 0x6162 support.
 WIFI_ATBM6132U_SITE = https://github.com/Colten-Covington/atbm-wifi
 WIFI_ATBM6132U_SITE_BRANCH = copilot/add-support-for-atbm6132c-u
 WIFI_ATBM6132U_VERSION = 63ce51545a2215c121efbf71b610038ca181cc2a

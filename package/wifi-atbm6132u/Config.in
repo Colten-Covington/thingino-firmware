@@ -6,4 +6,5 @@ config BR2_PACKAGE_WIFI_ATBM6132U
 
 config BR2_PACKAGE_WIFI_ATBM6132CU
 	bool "AltoBeam ATBM6132CU"
+	# Reuse ATBM6132U backend package, including its DWC2 kernel option selects.
 	select BR2_PACKAGE_WIFI_ATBM6132U
