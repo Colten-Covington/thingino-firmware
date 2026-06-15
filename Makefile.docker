@@ -7,6 +7,8 @@ USER_ID := $(shell id -u)
 GROUP_ID := $(shell id -g)
 USERNAME := builder
 DL_DIR := dl
+CONTAINER_OUTPUT_ROOT ?= /home/$(USERNAME)/output
+OUTPUT_VOLUME ?= thingino-output
 
 # Directories
 WORKSPACE_DIR := $(shell pwd)
@@ -20,8 +22,10 @@ endif
 
 CONTAINER_RUN_OPTS := \
 	-v $(WORKSPACE_DIR):/workspace \
+	-v $(OUTPUT_VOLUME):$(CONTAINER_OUTPUT_ROOT) \
 	-v $(shell [ -e ${DL_DIR} ] || mkdir -p ${DL_DIR} && readlink -f ${DL_DIR}):/home/$(USERNAME)/dl \
 	-w /workspace \
+	-e OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT) \
 	-e TERM=xterm-256color
 
 # Interactive container
@@ -54,7 +58,7 @@ docker-make: docker-build
 	$(eval TARGETS := $(if $(filter-out docker-make,$(MAKECMDGOALS)),$(filter-out docker-make,$(MAKECMDGOALS)),all))
 	$(eval CAMERA_ARG := $(if $(CAMERA),CAMERA=$(CAMERA)))
 	$(eval GROUP_ARG := $(if $(GROUP),GROUP=$(GROUP)))
-	@echo "Running make $(CAMERA_ARG) $(GROUP_ARG) $(TARGETS) in container..."
+	@echo "Running make $(CAMERA_ARG) $(GROUP_ARG) OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT) $(TARGETS) in container..."
 	@echo '#!/bin/bash' > /tmp/docker-make-run.sh
 	@echo 'cleanup() {' >> /tmp/docker-make-run.sh
 	@echo '    echo' >> /tmp/docker-make-run.sh
@@ -63,7 +67,7 @@ docker-make: docker-build
 	@echo '    exit 130' >> /tmp/docker-make-run.sh
 	@echo '}' >> /tmp/docker-make-run.sh
 	@echo 'trap cleanup INT TERM' >> /tmp/docker-make-run.sh
-	@echo '$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make $(CAMERA_ARG) $(GROUP_ARG) $(TARGETS) &' >> /tmp/docker-make-run.sh
+	@echo '$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT) $(CAMERA_ARG) $(GROUP_ARG) $(TARGETS) &' >> /tmp/docker-make-run.sh
 	@echo 'wait $$!' >> /tmp/docker-make-run.sh
 	@chmod +x /tmp/docker-make-run.sh
 	@/tmp/docker-make-run.sh
@@ -85,15 +89,16 @@ docker-info:
 	@echo "  Username:   $(USERNAME)"
 	@echo "  Workspace:  $(WORKSPACE_DIR)"
 	@echo "  Downloads:  $(DL_DIR)"
+	@echo "  Output vol: $(OUTPUT_VOLUME) -> $(CONTAINER_OUTPUT_ROOT)"
 
 # Convenience targets for building in container
 .PHONY: docker-build-firmware
 docker-build-firmware: docker-build
-	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make
+	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT)
 
 .PHONY: docker-dev
 docker-dev: docker-build
-	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make dev
+	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT) dev
 
 .PHONY: docker-menuconfig
 docker-menuconfig: docker-build
@@ -109,8 +114,8 @@ docker-busybox-menuconfig: docker-build
 
 .PHONY: docker-clean-build
 docker-clean-build: docker-build
-	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make distclean
-	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make
+	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT) distclean
+	$(CONTAINER_RUN_EXEC) $(DOCKER_IMAGE):$(DOCKER_TAG) make OUTPUT_ROOT_DIR=$(CONTAINER_OUTPUT_ROOT)
 
 .PHONY: docker-ota
 docker-ota: docker-build
