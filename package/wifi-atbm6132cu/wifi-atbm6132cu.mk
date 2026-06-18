@@ -1,8 +1,8 @@
 WIFI_ATBM6132CU_SITE_METHOD = git
 ifeq ($(KERNEL_VERSION),3.10.14)
-WIFI_ATBM6132CU_SITE = https://github.com/gtxaspec/atbm-wifi
+WIFI_ATBM6132CU_SITE = https://github.com/Colten-Covington/atbm-wifi
 WIFI_ATBM6132CU_SITE_BRANCH = atbm-606x-c
-WIFI_ATBM6132CU_VERSION = 8d06d948cc0d24405faf5429cd4bebf95640d705
+WIFI_ATBM6132CU_VERSION = bce6fea1fd7e25e0af27aeb95b7a0f02cc666316
 else ifeq ($(KERNEL_VERSION),4.4.94)
 WIFI_ATBM6132CU_SITE = https://github.com/themactep/atbm-wifi
 WIFI_ATBM6132CU_SITE_BRANCH = clean
@@ -46,7 +46,7 @@ define WIFI_ATBM6132CU_INSTALL_CONFIGS
 	$(INSTALL) -m 0644 -t $(TARGET_DIR)/usr/share/wifi \
 		$(WIFI_ATBM_WIFI_PKGDIR)/files/*.txt
 
-	$(INSTALL) -D -m 0644 $(@D)/firmware/firmware_mercurius_usb.bin \
+	$(INSTALL) -D -m 0644 $(@D)/firmware/firmware_usb_wifi_bt_comb_ocea.bin \
 		$(TARGET_DIR)/usr/lib/firmware/$(call qstrip,$(ATBM6132CU_MODULE_NAME))_fw.bin
 endef
 
